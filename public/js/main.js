@@ -4,7 +4,9 @@ document.addEventListener('DOMContentLoaded', function () {
   const noteTitle = document.getElementById('note-title');
   const noteContent = document.getElementById('note-content');
   const deleteBtn = document.getElementById('delete-btn');
+  const deleteNoteBtn = document.getElementById('delete-note-btn');
   const newNoteBtn = document.getElementById('new-note-btn');
+  const searchBtn = document.getElementById('search-note-btn');
   
   // Session management - warn user if session is about to expire
   let sessionWarningShown = false;
@@ -68,6 +70,12 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
     
+    // Delete key to delete current note
+    if (e.key === 'Delete' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      deleteCurrentNote();
+    }
+    
     // Escape to clear focus
     if (e.key === 'Escape') {
       if (document.activeElement === noteTitle || document.activeElement === noteContent) {
@@ -99,6 +107,61 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }
     });
+
+    // Right-click context menu for delete
+    noteList.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+      const li = e.target.closest('li[data-id]');
+      if (li && li.dataset.id) {
+        const noteId = li.dataset.id;
+        const noteTitle = li.querySelector('.note-title-text').textContent;
+        
+        if (confirm(`Delete note "${noteTitle}"? This action cannot be undone.`)) {
+          // Show loading state on the list item
+          li.style.opacity = '0.5';
+          li.style.pointerEvents = 'none';
+          
+          fetch(`/api/notes/${noteId}`, { method: 'DELETE' })
+            .then(res => {
+              if (!res.ok) {
+                throw new Error('Failed to delete note');
+              }
+              return res.json();
+            })
+            .then(() => {
+              showSaveIndicator('deleted');
+              // Remove the item from the list
+              li.remove();
+              // Update notes count
+              updateNotesCount();
+              // If this was the currently selected note, redirect to home
+              const currentNoteId = new URLSearchParams(window.location.search).get('note');
+              if (currentNoteId === noteId) {
+                setTimeout(() => {
+                  window.location = '/';
+                }, 1000);
+              }
+            })
+            .catch(err => {
+              console.error('Error deleting note:', err);
+              showSaveIndicator('error');
+              // Reset list item state
+              li.style.opacity = '1';
+              li.style.pointerEvents = 'auto';
+              alert('Failed to delete note. Please try again.');
+            });
+        }
+      }
+    });
+  }
+
+  // Update notes count function
+  function updateNotesCount() {
+    const notesCount = document.querySelector('.notes-count');
+    const noteItems = document.querySelectorAll('li[data-id]');
+    if (notesCount) {
+      notesCount.textContent = `${noteItems.length} note${noteItems.length === 1 ? '' : 's'}`;
+    }
   }
 
   // Create new note with better UX
@@ -412,45 +475,238 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // Delete note with better confirmation
+  // Delete note with better confirmation (note actions button)
   if (deleteBtn) {
     deleteBtn.addEventListener('click', function () {
-      const noteId = new URLSearchParams(window.location.search).get('note');
-      if (!noteId) {
-        alert('No note selected to delete.');
-        return;
-      }
-      
-      if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
-        return;
-      }
-      
-      // Show loading state
-      deleteBtn.disabled = true;
-      deleteBtn.textContent = '⏳';
-      
-      fetch(`/api/notes/${noteId}`, { method: 'DELETE' })
-        .then(res => {
-          if (!res.ok) {
-            throw new Error('Failed to delete note');
-          }
-          return res.json();
-        })
-        .then(() => {
-          showSaveIndicator('deleted');
-          setTimeout(() => {
-            window.location = '/';
-          }, 1000);
-        })
-        .catch(err => {
-          console.error('Error deleting note:', err);
-          showSaveIndicator('error');
-          // Reset button state
-          deleteBtn.disabled = false;
-          deleteBtn.textContent = '🗑️';
-          alert('Failed to delete note. Please try again.');
-        });
+      deleteCurrentNote();
     });
+  }
+
+  // Delete note with better confirmation (sidebar toolbar button)
+  if (deleteNoteBtn) {
+    deleteNoteBtn.addEventListener('click', function () {
+      deleteCurrentNote();
+    });
+  }
+
+  // Shared delete function
+  function deleteCurrentNote() {
+    const noteId = new URLSearchParams(window.location.search).get('note');
+    if (!noteId) {
+      alert('No note selected to delete.');
+      return;
+    }
+    
+    if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+      return;
+    }
+    
+    // Show loading state on both buttons
+    if (deleteBtn) {
+      deleteBtn.disabled = true;
+      deleteBtn.innerHTML = '<span class="btn-icon">⏳</span> Deleting...';
+    }
+    if (deleteNoteBtn) {
+      deleteNoteBtn.disabled = true;
+      deleteNoteBtn.textContent = '⏳';
+    }
+    
+    fetch(`/api/notes/${noteId}`, { method: 'DELETE' })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Failed to delete note');
+        }
+        return res.json();
+      })
+      .then(() => {
+        showSaveIndicator('deleted');
+        setTimeout(() => {
+          window.location = '/';
+        }, 1000);
+      })
+      .catch(err => {
+        console.error('Error deleting note:', err);
+        showSaveIndicator('error');
+        // Reset button states
+        if (deleteBtn) {
+          deleteBtn.disabled = false;
+          deleteBtn.innerHTML = '<span class="btn-icon">🗑️</span> Delete';
+        }
+        if (deleteNoteBtn) {
+          deleteNoteBtn.disabled = false;
+          deleteNoteBtn.textContent = '🗑️';
+        }
+        alert('Failed to delete note. Please try again.');
+      });
+  }
+
+  // Search functionality
+  if (searchBtn) {
+    searchBtn.addEventListener('click', function () {
+      openSearchModal();
+    });
+  }
+
+  // Search modal functionality
+  function openSearchModal() {
+    // Remove existing search modal if any
+    const existingModal = document.getElementById('search-modal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    // Create search modal
+    const modal = document.createElement('div');
+    modal.id = 'search-modal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal">
+        <div class="modal-content">
+          <h2>🔍 Search Notes</h2>
+          <div style="margin-bottom: 1rem;">
+            <input 
+              type="text" 
+              id="search-input" 
+              placeholder="Search by title or content..." 
+              style="width: 100%; padding: 0.8rem; border: 2px solid rgba(79, 70, 229, 0.1); border-radius: 8px; font-size: 1rem;"
+            />
+          </div>
+          <div id="search-results" style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem;">
+            <p style="text-align: center; color: var(--text-muted);">Type to search...</p>
+          </div>
+          <button class="btn btn-secondary" onclick="closeSearchModal()">Close</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Focus search input
+    setTimeout(() => {
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) {
+        searchInput.focus();
+      }
+    }, 100);
+
+    // Add search functionality
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', debounce(performSearch, 300));
+    }
+
+    // Close modal on overlay click
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeSearchModal();
+      }
+    });
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeSearchModal();
+      }
+    });
+  }
+
+  function closeSearchModal() {
+    const modal = document.getElementById('search-modal');
+    if (modal) {
+      modal.remove();
+    }
+  }
+
+  // Make functions globally accessible for inline onclick handlers
+  window.closeSearchModal = closeSearchModal;
+  window.openNoteFromSearch = openNoteFromSearch;
+
+  function performSearch() {
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+    
+    if (!searchInput || !searchResults) return;
+
+    const query = searchInput.value.trim();
+    
+    if (query.length === 0) {
+      searchResults.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Type to search...</p>';
+      return;
+    }
+
+    // Show loading state
+    searchResults.innerHTML = '<p style="text-align: center; color: var(--text-muted);">🔍 Searching...</p>';
+
+    // Fetch notes and search locally
+    fetch('/api/notes')
+      .then(res => res.json())
+      .then(notes => {
+        const results = notes.filter(note => {
+          const title = (note.title || '').toLowerCase();
+          const content = (note.content || '').toLowerCase();
+          const searchTerm = query.toLowerCase();
+          
+          return title.includes(searchTerm) || content.includes(searchTerm);
+        });
+
+        if (results.length === 0) {
+          searchResults.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No notes found matching "<strong>' + query + '</strong>"</p>';
+        } else {
+          const resultsHtml = results.map(note => {
+            const title = note.title || 'Untitled';
+            const content = note.content || '';
+            const date = new Date(note.updated_at || note.created_at).toLocaleDateString();
+            
+            // Highlight search term in title and content
+            const highlightedTitle = highlightText(title, query);
+            const highlightedContent = highlightText(content.substring(0, 100), query);
+            
+            return `
+              <div class="search-result-item" style="padding: 0.8rem; border: 1px solid rgba(79, 70, 229, 0.1); border-radius: 8px; margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s ease;" onclick="openNoteFromSearch('${note.id}')">
+                <div style="font-weight: 600; margin-bottom: 0.3rem;">${highlightedTitle}</div>
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.3rem;">${date}</div>
+                <div style="font-size: 0.9rem; line-height: 1.4;">${highlightedContent}${content.length > 100 ? '...' : ''}</div>
+              </div>
+            `;
+          }).join('');
+          
+          searchResults.innerHTML = `
+            <div style="margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
+              Found ${results.length} note${results.length === 1 ? '' : 's'}
+            </div>
+            ${resultsHtml}
+          `;
+        }
+      })
+      .catch(err => {
+        console.error('Search error:', err);
+        searchResults.innerHTML = '<p style="text-align: center; color: #f44336;">Error searching notes. Please try again.</p>';
+      });
+  }
+
+  function highlightText(text, query) {
+    if (!query) return text;
+    
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return text.replace(regex, '<mark style="background: rgba(79, 70, 229, 0.2); padding: 0.1rem 0.2rem; border-radius: 3px;">$1</mark>');
+  }
+
+  function openNoteFromSearch(noteId) {
+    closeSearchModal();
+    window.location = `/?note=${noteId}`;
+  }
+
+  // Debounce function for search
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
   }
 
   // Modal logic for login/signup

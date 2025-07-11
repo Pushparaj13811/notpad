@@ -8,7 +8,7 @@
     --sidebar-bg: rgba(255, 255, 255, 0.95); /* Increased opacity for better readability */
     --sidebar-accent: #90CAF9;
   
-    --main-bg: #FAFAFA;
+    --main-bg: rgba(245, 222, 179, 0.9);
     --paper-bg: #FFFFFF;
   
     --accent: #4F46E5; /* Indigo primary */
@@ -68,7 +68,29 @@ html {
 }
 
 body {
-  background: var(--cool-bg);
+  background: 
+    linear-gradient(45deg, 
+      rgba(139, 69, 19, 0.1) 25%, 
+      transparent 25%, 
+      transparent 75%, 
+      rgba(139, 69, 19, 0.1) 75%
+    ),
+    linear-gradient(45deg, 
+      rgba(139, 69, 19, 0.1) 25%, 
+      transparent 25%, 
+      transparent 75%, 
+      rgba(139, 69, 19, 0.1) 75%
+    ),
+    linear-gradient(
+      135deg,
+      #8B4513 0%,
+      #A0522D 25%,
+      #CD853F 50%,
+      #DEB887 75%,
+      #F5DEB3 100%
+    );
+  background-size: 60px 60px, 60px 60px, 100% 100%;
+  background-position: 0 0, 30px 30px, 0 0;
   background-attachment: fixed;
   color: var(--text);
   font-family: 'Georgia', 'Times New Roman', serif;
@@ -81,11 +103,11 @@ body {
   min-height: 100vh;
   background: linear-gradient(
     45deg,
-    rgba(74, 144, 184, 0.1) 0%,
-    rgba(58, 124, 168, 0.1) 25%,
-    rgba(42, 105, 152, 0.1) 50%,
-    rgba(26, 85, 136, 0.1) 75%,
-    rgba(10, 66, 120, 0.1) 100%
+    rgba(139, 69, 19, 0.05) 0%,
+    rgba(160, 82, 45, 0.05) 25%,
+    rgba(205, 133, 63, 0.05) 50%,
+    rgba(222, 184, 135, 0.05) 75%,
+    rgba(245, 222, 179, 0.05) 100%
   );
 }
 
@@ -151,9 +173,9 @@ body {
   font-weight: 500;
   text-align: center;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.7);
   border-radius: var(--border-radius);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(139, 69, 19, 0.2);
 }
 
 .note-list {
@@ -356,7 +378,6 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #fff;
   color: var(--text);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
@@ -490,7 +511,6 @@ body {
 }
 
 .auth-box {
-  background: rgba(255, 255, 255, 0.95);
   color: var(--text);
   border-radius: var(--border-radius);
   padding: 2rem; /* Increased padding */
@@ -531,14 +551,6 @@ body {
   color: var(--text);
   transition: var(--transition);
   backdrop-filter: blur(5px);
-}
-
-.auth-box input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: var(--focus-ring);
-  transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.95);
 }
 
 .auth-box .btn {
@@ -791,7 +803,6 @@ body {
 
 /* Guest Info Styles */
 .guest-info {
-  background: rgba(255, 255, 255, 0.95);
   border-radius: var(--border-radius);
   padding: 1rem;
   box-shadow: var(--paper-shadow);
@@ -828,7 +839,7 @@ body {
 }
 
 .guest-description {
-  color: var(--text-muted);
+  color: var(--text);
   font-size: 0.8rem;
   line-height: 1.5;
   margin-bottom: 0.5rem;
@@ -1200,6 +1211,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Search Result Styles */
+.search-result-item:hover {
+  background: rgba(79, 70, 229, 0.05) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15) !important;
 }
 
 /* Mobile responsiveness for new sidebar components */
