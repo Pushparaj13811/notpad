@@ -1,0 +1,80 @@
+<div class="sidebar">
+  <div class="sidebar-toolbar">
+    <button class="btn" id="new-note-btn" title="New Note (Ctrl+N)">📝</button>
+    <button class="btn" id="save-note-btn" title="Save Note (Ctrl+S)">💾</button>
+    <button class="btn" id="search-note-btn" title="Search Notes">🔍</button>
+    <button class="btn" id="delete-note-btn" title="Delete Note">🗑️</button>
+  </div>
+  
+  <div class="sidebar-welcome">
+    <div class="welcome-text">
+      <h3>Welcome to Notepad!</h3>
+      <p>Create, organize, and manage your notes with ease.</p>
+    </div>
+  </div>
+  
+  <div class="notes-section">
+    <div class="notes-header">
+      <h3>Your Notes</h3>
+      <span class="notes-count"><%= typeof notes !== 'undefined' && notes.length > 0 ? notes.length : 0 %> notes</span>
+    </div>
+    <ul id="note-list" class="note-list">
+      <% if (typeof notes !== 'undefined' && notes.length > 0) { %>
+        <% notes.forEach(note => { %>
+          <li data-id="<%= note.id %>" class="note-list-item<%= note.id === selectedNoteId ? ' selected' : '' %>" title="<%= note.title || 'Untitled' %>">
+            <div class="note-item-content">
+              <div class="note-title-text"><%= note.title || 'Untitled' %></div>
+              <div class="note-meta">
+                <span class="note-date"><%= new Date(note.updated_at || note.created_at).toLocaleDateString() %></span>
+                <% if (note.content && note.content.length > 0) { %>
+                  <span class="note-preview"><%= note.content.substring(0, 30) + (note.content.length > 30 ? '...' : '') %></span>
+                <% } %>
+              </div>
+            </div>
+          </li>
+        <% }) %>
+      <% } else { %>
+        <li class="note-list-item empty-state">
+          <div class="empty-state-content">
+            <span class="empty-icon">📝</span>
+            <p>No notes yet</p>
+            <small>Click the 📝 button to create your first note!</small>
+          </div>
+        </li>
+      <% } %>
+    </ul>
+  </div>
+</div>
+
+<div class="main">
+  <div class="notepad-container">
+    <form id="note-form" class="note-form">
+      <input 
+        type="text" 
+        id="note-title" 
+        name="title" 
+        placeholder="Enter note title..." 
+        value="<%= selectedNote ? selectedNote.title : '' %>" 
+        class="note-title" 
+        autocomplete="off"
+      />
+      <textarea 
+        id="note-content" 
+        name="content" 
+        class="note-area" 
+        placeholder="Start typing your note here..."
+        autocomplete="off"
+      ><%= selectedNote ? selectedNote.content : '' %></textarea>
+      <div class="note-actions">
+        <button class="btn btn-secondary" type="button" id="delete-btn" title="Delete Note">
+          <span class="btn-icon">🗑️</span>
+          Delete
+        </button>
+        <button class="btn" type="submit" title="Save Note (Ctrl+S)">
+          <span class="btn-icon">💾</span>
+          Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

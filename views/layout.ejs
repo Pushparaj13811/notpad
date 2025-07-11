@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'Notepad' %> | Memo Notepad</title>
+  <link rel="stylesheet" href="/css/theme.css">
+  <% if (typeof extraCSS !== 'undefined') { %>
+    <link rel="stylesheet" href="<%= extraCSS %>">
+  <% } %>
+  <meta name="description" content="A beautiful, modern notepad application for creating and organizing your notes">
+  <meta name="theme-color" content="#4F46E5">
+</head>
+<body>
+  <div class="container">
+    <%- body %>
+    
+    <% if (typeof showAuthSidebar === 'undefined' || showAuthSidebar !== false) { %>
+    <!-- Right Authentication Sidebar -->
+    <div class="auth-sidebar">
+      <% if (typeof user === 'undefined' || !user) { %>
+      <!-- Show auth forms only for non-authenticated users -->
+      
+      <!-- Auth Form Toggle Buttons -->
+      <div class="auth-toggle">
+        <button class="auth-toggle-btn active" data-form="signup">Sign Up</button>
+        <button class="auth-toggle-btn" data-form="login">Login</button>
+      </div>
+      
+      <!-- Sign Up Form -->
+      <div class="auth-box" id="signup-form">
+        <h2>Create Account</h2>
+        <form method="POST" action="/register">
+          <input type="email" name="email" placeholder="Email" required autocomplete="email" />
+          <input type="password" name="password" placeholder="Password" required autocomplete="new-password" minlength="6" />
+          <button class="btn" type="submit">Sign Up</button>
+        </form>
+        <% if (typeof error !== 'undefined' && error && !isLogin) { %>
+          <div class="auth-error"><%= error %></div>
+        <% } %>
+      </div>
+      
+      <!-- Login Form -->
+      <div class="auth-box" id="login-form" style="display: none;">
+        <h2>Welcome Back</h2>
+        <form method="POST" action="/login">
+          <input type="email" name="email" placeholder="Email" required autocomplete="email" />
+          <input type="password" name="password" placeholder="Password" required autocomplete="current-password" />
+          <button class="btn" type="submit">Login</button>
+        </form>
+        <% if (typeof error !== 'undefined' && error && isLogin) { %>
+          <div class="auth-error"><%= error %></div>
+        <% } %>
+      </div>
+      
+      <!-- Guest Mode Information -->
+      <div class="guest-info">
+        <div class="guest-info-header">
+          <span class="guest-icon">👤</span>
+          <h3>Guest Mode</h3>
+        </div>
+        <p class="guest-description">
+          You can use the notepad without signing up! Your notes will be saved temporarily in your browser.
+        </p>
+        <div class="guest-benefits">
+          <div class="benefit-item">
+            <span class="benefit-icon">💾</span>
+            <span>Auto-save every 1.5 seconds</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">🔒</span>
+            <span>Notes stay private on your device</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">📱</span>
+            <span>Works offline</span>
+          </div>
+        </div>
+        <div class="guest-note">
+          <strong>💡 Tip:</strong> Sign up to keep your notes forever and access them from any device!
+        </div>
+      </div>
+      <% } else { %>
+      <!-- Authenticated user info -->
+      <div class="auth-box user-info">
+        <h2>Account</h2>
+        <div class="user-details">
+          <div class="user-avatar">
+            <span><%= user.email.charAt(0).toUpperCase() %></span>
+          </div>
+          <div class="user-text">
+            <p class="user-email"><%= user.email %></p>
+            <p class="user-status">✓ Logged in</p>
+          </div>
+        </div>
+        <div class="user-actions">
+          <a href="/logout" class="btn logout-btn">
+            <span class="logout-icon">🚪</span>
+            Logout
+          </a>
+        </div>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+  </div>
+  <script src="/js/main.js"></script>
+  <% if (typeof extraJS !== 'undefined') { %>
+    <script src="<%= extraJS %>"></script>
+  <% } %>
+</body>
+</html>
