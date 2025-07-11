@@ -10,7 +10,11 @@
     "db:migrate": "node scripts/migrate-db.js run",
     "db:migrate:create": "node scripts/migrate-db.js create",
     "db:reset": "npm run db:setup && npm run db:migrate",
-    "postinstall": "mkdir -p scripts migrations"
+    "postinstall": "mkdir -p scripts migrations",
+    "pm2:start": "pm2 start server.js --name notepad",
+    "pm2:stop": "pm2 stop notepad",
+    "pm2:delete": "pm2 delete notepad",
+    "pm2:logs": "pm2 logs notepad"
   },
   "keywords": [],
   "author": "",
